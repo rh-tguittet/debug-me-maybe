@@ -29,7 +29,11 @@ oc dmm -n kube-system konnectivity-agent-p9ppv --force-kill
 
 1. Finds your pod
 2. Uploads `dlv` (https://github.com/go-delve/delve, a go debugger) onto the
-   pod (in /tmp/dlv by default)
+   pod (in /tmp/dlv by default). Have your pick of upload methods:
+    * `direct` is equivalent to `kubectl cp` and only works if the pod has
+      `tar`.
+    * `stager` creates a stager pod, copies the debugger to it, then uses
+      `curl` from the pod to debug to retrieve the debugger.
 3. Attaches the debugger for a pid on your pod and listens for debug commands
    on a port (2345/tcp by default)
 4. Locally spawns a port-forward (kubectl port-forward) to expose the remote

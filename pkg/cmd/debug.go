@@ -120,6 +120,10 @@ func NewCmdSniff(streams genericclioptions.IOStreams) *cobra.Command {
 	_ = viper.BindEnv("force-kill", "KUBECTL_PLUGINS_LOCAL_FLAG_FORCE_KILL")
 	_ = viper.BindPFlag("force-kill", cmd.Flags().Lookup("force-kill"))
 
+	cmd.Flags().StringVarP((*string)(&dmmSettings.UserSpecifiedUploadMethod), "upload-method", "u", "direct",
+		"upload method for the debugger, 'direct' (default) requires 'tar' to be installed. 'stager' requires only curl to be installed.")
+	_ = viper.BindPFlag("upload-method", cmd.Flags().Lookup("upload-method"))
+
 	return cmd
 }
 
@@ -144,6 +148,14 @@ func (o *DMM) Complete(cmd *cobra.Command, args []string) error {
 	o.settings.UserSpecifiedRemoteDlvPath = viper.GetString("remote-dlv-path")
 	o.settings.UserSpecifiedDebuggerPort = viper.GetInt("debugger-port")
 	o.settings.UserSpecifiedForceKill = viper.GetBool("force-kill")
+	switch config.UploadMethod(viper.GetString("upload-method")) {
+	case config.DIRECT:
+		o.settings.UserSpecifiedUploadMethod = config.DIRECT
+	case config.STAGER:
+		o.settings.UserSpecifiedUploadMethod = config.STAGER
+	default:
+		return fmt.Errorf("unknown upload method: %s", config.UploadMethod(viper.GetString("upload-method")))
+	}
 
 	var err error
 

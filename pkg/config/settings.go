@@ -4,6 +4,13 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
+type UploadMethod string
+
+const (
+	DIRECT UploadMethod = "direct"
+	STAGER UploadMethod = "stager"
+)
+
 type DMMSettings struct {
 	UserSpecifiedPodName       string
 	UserSpecifiedContainer     string
@@ -19,6 +26,7 @@ type DMMSettings struct {
 	UserSpecifiedRemoteDlvPath string
 	UserSpecifiedDebuggerPort  int
 	UserSpecifiedForceKill     bool
+	UserSpecifiedUploadMethod  UploadMethod
 }
 
 func NewDMMSettings(streams genericclioptions.IOStreams) *DMMSettings {

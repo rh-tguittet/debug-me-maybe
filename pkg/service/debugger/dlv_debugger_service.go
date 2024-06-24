@@ -24,8 +24,19 @@ func (u *DlvDebuggerService) Setup() error {
 	log.Infof("uploading dlv binary from: '%s' to: '%s'",
 		u.settings.UserSpecifiedLocalDlvPath, u.settings.UserSpecifiedRemoteDlvPath)
 
-	err := u.kubernetesApiService.UploadFile(u.settings.UserSpecifiedLocalDlvPath,
-		u.settings.UserSpecifiedRemoteDlvPath, u.settings.UserSpecifiedPodName, u.settings.UserSpecifiedContainer)
+	var err error
+	switch u.settings.UserSpecifiedUploadMethod {
+	case config.DIRECT:
+		log.Info("uploading using the DIRECT method (will fail it 'tar' is not present on the pod)")
+		err = u.kubernetesApiService.UploadFileTar(u.settings.UserSpecifiedLocalDlvPath,
+			u.settings.UserSpecifiedRemoteDlvPath, u.settings.UserSpecifiedPodName, u.settings.UserSpecifiedContainer)
+	case config.STAGER:
+		log.Info("uploading using the STAGER method (will fail it 'curl' is not present on the pod)")
+		err = u.kubernetesApiService.UploadThroughCurl(u.settings.UserSpecifiedLocalDlvPath,
+			u.settings.UserSpecifiedRemoteDlvPath, u.settings.UserSpecifiedPodName, u.settings.UserSpecifiedContainer)
+	default:
+		err = errors.Errorf("invalid upload method: %s", u.settings.UserSpecifiedUploadMethod)
+	}
 
 	if err != nil {
 		log.WithError(err).Errorf("failed uploading dlv binary to container, please verify the remote container has tar installed")
